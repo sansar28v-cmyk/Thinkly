@@ -1,0 +1,287 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-emerald-deep: var(--emerald-deep);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.9rem;
+  /* Dark green + gold theme (always dark) */
+  --background: oklch(0.18 0.04 165);
+  --foreground: oklch(0.96 0.02 90);
+  --card: oklch(0.22 0.05 165 / 0.6);
+  --card-foreground: oklch(0.96 0.02 90);
+  --popover: oklch(0.2 0.05 165);
+  --popover-foreground: oklch(0.96 0.02 90);
+  --primary: oklch(0.82 0.15 88);           /* gold */
+  --primary-foreground: oklch(0.18 0.04 165);
+  --secondary: oklch(0.28 0.07 165);
+  --secondary-foreground: oklch(0.96 0.02 90);
+  --muted: oklch(0.24 0.05 165);
+  --muted-foreground: oklch(0.72 0.03 120);
+  --accent: oklch(0.55 0.14 155);           /* emerald */
+  --accent-foreground: oklch(0.98 0.01 90);
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(0.98 0.01 90);
+  --border: oklch(0.82 0.15 88 / 0.18);
+  --input: oklch(0.82 0.15 88 / 0.12);
+  --ring: oklch(0.82 0.15 88 / 0.6);
+  --gold: oklch(0.82 0.15 88);
+  --gold-soft: oklch(0.9 0.11 92);
+  --emerald-deep: oklch(0.35 0.1 160);
+}
+
+@layer base {
+  html, body {
+    min-height: 100vh;
+    /* smoother momentum scroll on mobile */
+    -webkit-overflow-scrolling: touch;
+  }
+  html { scroll-behavior: smooth; }
+  * { border-color: var(--color-border); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    background-image:
+      radial-gradient(1200px 600px at 10% -10%, oklch(0.35 0.12 160 / 0.55), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, oklch(0.82 0.15 88 / 0.18), transparent 60%),
+      radial-gradient(800px 600px at 50% 100%, oklch(0.4 0.14 155 / 0.35), transparent 60%);
+    background-attachment: fixed;
+  }
+  /* fixed bg-attachment tanks scroll perf on mobile Safari/Chrome */
+  @media (max-width: 768px) {
+    body { background-attachment: scroll; }
+  }
+  h1,h2,h3,h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+}
+
+/* GPU-accelerated layer — use on fixed decorative scenes */
+@utility gpu {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  contain: layout paint style;
+}
+
+/* Respect reduced motion — kill infinite anims */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@utility text-gradient-gold {
+  background: linear-gradient(120deg, oklch(0.9 0.13 92), oklch(0.78 0.16 78), oklch(0.95 0.08 95));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility glass {
+  background: linear-gradient(180deg,
+    oklch(0.28 0.06 165 / 0.55),
+    oklch(0.2 0.05 165 / 0.35));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid oklch(0.82 0.15 88 / 0.2);
+  box-shadow:
+    0 1px 0 0 oklch(0.82 0.15 88 / 0.15) inset,
+    0 30px 80px -30px oklch(0 0 0 / 0.7);
+}
+
+@utility gold-ring {
+  box-shadow:
+    0 0 0 1px oklch(0.82 0.15 88 / 0.35),
+    0 0 40px -10px oklch(0.82 0.15 88 / 0.5);
+}
+
+@keyframes float-slow {
+  0%,100% { transform: translate3d(0,0,0) rotate(0deg); }
+  50% { transform: translate3d(0,-30px,0) rotate(6deg); }
+}
+@keyframes float-slower {
+  0%,100% { transform: translate3d(0,0,0) rotate(0deg); }
+  50% { transform: translate3d(0,40px,0) rotate(-8deg); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes orb-spin {
+  from { transform: rotate3d(1,1,0,0deg); }
+  to { transform: rotate3d(1,1,0,360deg); }
+}
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sheen {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  60% { transform: translateX(220%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+@keyframes shimmer-text {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@utility animate-float-slow { animation: float-slow 12s ease-in-out infinite; }
+@utility animate-float-slower { animation: float-slower 16s ease-in-out infinite; }
+@utility animate-orb { animation: orb-spin 24s linear infinite; }
+@utility animate-fade-in { animation: fade-in 0.4s ease-out both; }
+
+/* Scroll-reveal: elements start hidden, become visible when they enter viewport */
+@utility reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: reveal-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 30%;
+}
+
+/* Shimmering gold text */
+@utility shimmer-text {
+  background: linear-gradient(
+    100deg,
+    oklch(0.85 0.14 88) 0%,
+    oklch(0.98 0.05 92) 45%,
+    oklch(0.85 0.14 88) 55%,
+    oklch(0.75 0.16 78) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 6s linear infinite;
+}
+
+@utility shimmer {
+  background: linear-gradient(90deg, transparent, oklch(0.82 0.15 88 / 0.3), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Frame with soft animated gold glow */
+@utility glow-frame {
+  position: relative;
+}
+.glow-frame::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    oklch(0.82 0.15 88 / 0.45),
+    transparent 30%,
+    transparent 70%,
+    oklch(0.55 0.14 155 / 0.4)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Sheen sweep on primary button */
+@utility btn-sheen {
+  position: relative;
+  isolation: isolate;
+}
+.btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%) skewX(-20deg);
+  animation: sheen 3.5s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Markdown prose */
+.prose-thinkly h1, .prose-thinkly h2, .prose-thinkly h3 {
+  color: oklch(0.9 0.13 92);
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+.prose-thinkly h2 { font-size: 1.15rem; }
+.prose-thinkly h3 { font-size: 1rem; }
+.prose-thinkly p { margin: 0.5em 0; line-height: 1.65; }
+.prose-thinkly ul { list-style: disc; padding-left: 1.25rem; margin: 0.5em 0; }
+.prose-thinkly ol { list-style: decimal; padding-left: 1.25rem; margin: 0.5em 0; }
+.prose-thinkly li { margin: 0.25em 0; }
+.prose-thinkly code {
+  background: oklch(0.14 0.04 165);
+  color: oklch(0.9 0.13 92);
+  padding: 0.1em 0.35em;
+  border-radius: 0.35rem;
+  font-size: 0.9em;
+}
+.prose-thinkly pre {
+  background: oklch(0.12 0.03 165);
+  border: 1px solid oklch(0.82 0.15 88 / 0.2);
+  padding: 0.9rem;
+  border-radius: 0.6rem;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+.prose-thinkly pre code { background: transparent; padding: 0; }
+.prose-thinkly a { color: oklch(0.85 0.14 88); text-decoration: underline; }
+.prose-thinkly strong { color: oklch(0.95 0.08 92); }
+.prose-thinkly blockquote {
+  border-left: 3px solid oklch(0.82 0.15 88 / 0.6);
+  padding-left: 0.9rem;
+  color: oklch(0.85 0.03 120);
+  font-style: italic;
+}
