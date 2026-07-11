@@ -85,6 +85,11 @@ function Thinkly() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [chatHistory, setChatHistory] = useState<{role: "user" | "assistant", content: string}[]>([]);
+  const [followUp, setFollowUp] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatAnswer, setChatAnswer] = useState("");
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
   const outRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -94,13 +99,16 @@ function Thinkly() {
     setLoading(true);
     setError(null);
     setAnswer("");
+    setChatHistory([]);
+    setFollowUp("");
+    setChatAnswer("");
     const controller = new AbortController();
     abortRef.current = controller;
     try {
       const res = await fetch("/api/thinkly", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, prompt: prompt.trim() }),
+        body: JSON.stringify({ mode, messages: [{ role: "user", content: prompt.trim() }] }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -128,10 +136,70 @@ function Thinkly() {
   }
 
   useEffect(() => {
-    if ((answer || loading) && outRef.current) {
+    if (loading && outRef.current) {
       outRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [answer, loading]);
+  }, [loading]);
+
+  useEffect(() => {
+    if (isChatLoading && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [isChatLoading]);
+
+  async function onChatSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!followUp.trim() || isChatLoading) return;
+    
+    const userMessage = followUp.trim();
+    setFollowUp("");
+    
+    const newHistory = [...chatHistory, { role: "user" as const, content: userMessage }];
+    setChatHistory(newHistory);
+    setIsChatLoading(true);
+    setError(null);
+    setChatAnswer("");
+    
+    const controller = new AbortController();
+    abortRef.current = controller;
+    
+    try {
+      const messagesPayload = [
+        { role: "user", content: prompt },
+        { role: "assistant", content: answer },
+        ...newHistory
+      ];
+      
+      const res = await fetch("/api/thinkly", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, messages: messagesPayload }),
+        signal: controller.signal,
+      });
+      if (!res.ok || !res.body) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `Request failed (${res.status})`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setChatAnswer(acc);
+      }
+      setChatHistory([...newHistory, { role: "assistant" as const, content: acc || "*(Empty response)*" }]);
+      setChatAnswer("");
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
+    } finally {
+      setIsChatLoading(false);
+      abortRef.current = null;
+    }
+  }
 
   async function copyAnswer() {
     if (!answer) return;
@@ -196,7 +264,7 @@ function Thinkly() {
                   : "Paste your rough problem statement — Thinkly will rewrite it."
               }
               rows={5}
-              className="mt-3 w-full resize-none rounded-xl border border-border/60 bg-background/40 p-4 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
+              className="mt-3 w-full resize-none rounded-xl border border-border/60 bg-background/40 p-4 text-base leading-normal md:text-[15px] md:leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
             />
 
             {/* Sample chips */}
@@ -249,23 +317,81 @@ function Thinkly() {
           {loading && !answer && <SkeletonAnswer />}
           {!loading && !answer && !error && <EmptyState mode={mode} />}
           {answer && (
-            <article className="glass glow-frame rounded-3xl p-5 md:p-8 animate-fade-in">
-              <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <div className="flex min-w-0 items-center gap-2 text-[11px] uppercase tracking-[0.25em] text-primary/80">
-                  <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_var(--gold)]" />
-                  <span className="truncate">Thinkly · {mode}</span>
+            <div className="flex flex-col gap-6">
+              <article className="glass glow-frame rounded-3xl p-5 md:p-8 animate-fade-in">
+                <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-2 text-[11px] uppercase tracking-[0.25em] text-primary/80">
+                    <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_var(--gold)]" />
+                    <span className="truncate">Thinkly · {mode}</span>
+                  </div>
+                  <button
+                    onClick={copyAnswer}
+                    className="shrink-0 rounded-full border border-border bg-background/40 px-3 py-1 text-xs text-foreground/80 transition hover:border-primary/60 hover:text-primary"
+                  >
+                    {copied ? "Copied ✓" : "Copy"}
+                  </button>
                 </div>
+                <div className="prose-thinkly max-w-none text-[15px] text-foreground/95">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{answer}</ReactMarkdown>
+                </div>
+              </article>
+              
+              {/* Chat History */}
+              {chatHistory.length > 0 && (
+                <div className="flex flex-col gap-4 animate-fade-in">
+                  {chatHistory.map((msg, idx) => (
+                    <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[85%] rounded-2xl p-4 md:p-5 ${msg.role === "user" ? "bg-primary text-primary-foreground" : "glass glow-frame"}`}>
+                        <div className="prose-thinkly max-w-none text-[14px] md:text-[15px]">
+                          {msg.role === "user" ? msg.content : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Chat loading animation */}
+              {isChatLoading && !chatAnswer && (
+                <div className="flex justify-start animate-fade-in">
+                  <div className="max-w-[85%] rounded-2xl p-4 md:p-5 glass glow-frame flex items-center gap-3 text-muted-foreground">
+                    <Spinner />
+                    <span className="text-[14px] font-medium">Generating...</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Currently streaming chat answer */}
+              {chatAnswer && (
+                <div className="flex justify-start animate-fade-in">
+                  <div className="max-w-[85%] rounded-2xl p-4 md:p-5 glass glow-frame">
+                    <div className="prose-thinkly max-w-none text-[14px] md:text-[15px]">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{chatAnswer}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Chat Input */}
+              <form onSubmit={onChatSubmit} className="mt-2 relative">
+                <input
+                  type="text"
+                  value={followUp}
+                  onChange={(e) => setFollowUp(e.target.value)}
+                  placeholder="Ask a follow-up question..."
+                  disabled={isChatLoading || loading}
+                  className="w-full rounded-full border border-border/60 bg-background/40 py-3 pl-5 pr-12 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40 disabled:opacity-50"
+                />
                 <button
-                  onClick={copyAnswer}
-                  className="shrink-0 rounded-full border border-border bg-background/40 px-3 py-1 text-xs text-foreground/80 transition hover:border-primary/60 hover:text-primary"
+                  type="submit"
+                  disabled={isChatLoading || loading || !followUp.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary/20 p-2 text-primary hover:bg-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
-                  {copied ? "Copied ✓" : "Copy"}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </button>
-              </div>
-              <div className="prose-thinkly max-w-none text-[15px] text-foreground/95">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{answer}</ReactMarkdown>
-              </div>
-            </article>
+              </form>
+              <div ref={chatEndRef} />
+            </div>
           )}
         </div>
 
