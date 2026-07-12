@@ -242,7 +242,7 @@ function Thinkly() {
       <Grain />
       <Nav />
 
-      <main className="relative z-10 mx-auto max-w-5xl px-5 pt-10 pb-24 sm:px-6 lg:px-8">
+      <main className="relative z-10 mx-auto max-w-5xl px-5 pt-4 md:pt-10 pb-24 sm:px-6 lg:px-8">
         <Hero />
 
         {/* Mode selector */}
@@ -543,7 +543,7 @@ function Nav() {
   return (
     <header
       ref={navRef}
-      className="sticky top-3 z-30 mx-auto mt-3 max-w-6xl px-3 sm:px-6"
+      className="sticky top-2 z-30 mx-auto mt-2 md:top-3 md:mt-3 max-w-6xl px-3 sm:px-6"
     >
       {/* soft gold aura behind the pill on scroll */}
       <div
@@ -763,7 +763,7 @@ function NavLink({
 /* -------------------- Hero -------------------- */
 function Hero() {
   return (
-    <section id="top" className="relative mt-14 text-center md:mt-24">
+    <section id="top" className="relative mt-8 text-center md:mt-24">
       <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-background/30 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-primary/90 backdrop-blur">
         <span className="relative flex h-1.5 w-1.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-70" />
@@ -1310,7 +1310,7 @@ function Grain() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[5] opacity-[0.05] mix-blend-overlay"
+      className="pointer-events-none fixed inset-0 z-[5] opacity-[0.03] md:opacity-[0.05]"
       style={{
         backgroundImage:
           "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
