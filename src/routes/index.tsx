@@ -24,9 +24,9 @@ const MODES: {
     tag: "Core Feature",
     desc: "Explain a problem statement clearly from top to bottom.",
     bullets: [
-      "Plain-language restatement",
-      "Core problem, context, stakeholders",
-      "Constraints, risks & root causes",
+      "Executive Summary & Stakeholders",
+      "Scope, Competitors & Root Causes",
+      "KPIs, Feasibility & Business Impact",
     ],
   },
   {
@@ -147,6 +147,29 @@ function Thinkly() {
     }
   }, [isChatLoading]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    const timeout = setTimeout(() => {
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    }, 100);
+
+    return () => {
+      clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, []);
+
   async function onChatSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!followUp.trim() || isChatLoading) return;
@@ -219,7 +242,7 @@ function Thinkly() {
       <Grain />
       <Nav />
 
-      <main className="relative z-10 mx-auto max-w-6xl px-5 pt-10 pb-24 sm:px-6">
+      <main className="relative z-10 mx-auto max-w-5xl px-5 pt-10 pb-24 sm:px-6 lg:px-8">
         <Hero />
 
         {/* Mode selector */}
@@ -285,9 +308,7 @@ function Thinkly() {
             </div>
 
             <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-              <p className="min-w-0 truncate text-xs text-muted-foreground">
-                Powered by Thinkly Engine · tencent/hy3
-              </p>
+              <div />
               <button
                 type="submit"
                 disabled={loading || !prompt.trim()}
@@ -537,10 +558,10 @@ function Nav() {
       />
       <div className="relative w-full">
         <div
-          className={`gpu glow-frame relative w-full grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-full border border-border/70 px-4 py-2.5 transition-[background-color,box-shadow,backdrop-filter,border-color] duration-300 sm:px-5 ${
+          className={`gpu glow-frame relative w-full grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-full border px-4 py-2.5 transition-all duration-500 sm:px-5 ${
           scrolled
-            ? "bg-background/70 backdrop-blur-xl shadow-[0_18px_50px_-20px_oklch(0.82_0.15_88/_0.45)]"
-            : "bg-background/30 backdrop-blur-md"
+            ? "bg-background/60 backdrop-blur-2xl shadow-[inset_0_1px_0_0_oklch(0.82_0.15_88/_0.2),0_18px_50px_-20px_oklch(0.82_0.15_88/_0.45)] border-primary/30"
+            : "bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_0_0_oklch(0.82_0.15_88/_0.1)] border-transparent hover:border-primary/20"
         }`}
       >
         {/* Reading-progress hairline along the bottom of the nav pill */}
@@ -578,9 +599,6 @@ function Nav() {
             <div className="flex items-center gap-1.5">
               <span className="truncate text-base font-semibold tracking-tight text-gradient-gold">
                 Thinkly
-              </span>
-              <span className="hidden rounded-full border border-primary/40 bg-primary/10 px-1.5 py-[1px] text-[8.5px] font-semibold uppercase tracking-[0.18em] text-primary/90 sm:inline">
-                Beta
               </span>
             </div>
             <div className="mt-0.5 hidden truncate text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:block">

@@ -76,15 +76,20 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+  }
+  
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
     background-image:
       radial-gradient(1200px 600px at 10% -10%, oklch(0.35 0.12 160 / 0.55), transparent 60%),
       radial-gradient(900px 500px at 100% 0%, oklch(0.82 0.15 88 / 0.18), transparent 60%),
       radial-gradient(800px 600px at 50% 100%, oklch(0.4 0.14 155 / 0.35), transparent 60%);
-    background-attachment: fixed;
-  }
-  /* fixed bg-attachment tanks scroll perf on mobile Safari/Chrome */
-  @media (max-width: 768px) {
-    body { background-attachment: scroll; }
+    pointer-events: none;
+    transform: translateZ(0);
+    will-change: transform;
   }
   h1,h2,h3,h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
@@ -124,6 +129,8 @@
   box-shadow:
     0 1px 0 0 oklch(0.82 0.15 88 / 0.15) inset,
     0 30px 80px -30px oklch(0 0 0 / 0.7);
+  transform: translateZ(0);
+  will-change: transform, backdrop-filter;
 }
 
 @utility gold-ring {
@@ -174,10 +181,10 @@
 /* Scroll-reveal: elements start hidden, become visible when they enter viewport */
 @utility reveal {
   opacity: 0;
-  transform: translateY(14px);
-  animation: reveal-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-timeline: view();
-  animation-range: entry 0% cover 30%;
+}
+
+@utility revealed {
+  animation: reveal-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
 
 /* Shimmering gold text */
