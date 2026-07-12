@@ -837,16 +837,39 @@ function ModeCard({
   onClick: () => void;
   reveal: number;
 }) {
+  const [isRevealed, setIsRevealed] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <button
-      onClick={onClick}
+    <div
+      ref={ref}
+      className={`h-full ${isRevealed ? "revealed" : "reveal"}`}
       style={{ animationDelay: `${reveal * 80}ms` }}
-      className={`reveal group relative overflow-hidden rounded-2xl p-6 text-left transition-all duration-300 ${
-        active
-          ? "glass gold-ring -translate-y-1"
-          : "glass hover:-translate-y-0.5 hover:border-primary/40"
-      }`}
     >
+      <button
+        onClick={onClick}
+        className={`group h-full w-full relative overflow-hidden rounded-2xl p-6 text-left transition-all duration-300 ${
+          active
+            ? "glass gold-ring -translate-y-1"
+            : "glass hover:-translate-y-0.5 hover:border-primary/40"
+        }`}
+      >
       {/* corner number */}
       <div
         aria-hidden
@@ -893,6 +916,7 @@ function ModeCard({
         {active ? "Selected" : "Choose"} <span aria-hidden>→</span>
       </div>
     </button>
+    </div>
   );
 }
 
